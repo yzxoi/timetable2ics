@@ -41,6 +41,7 @@ def parse_timetable(raw_text, api_key):
              """},
             {"role": "user", "content": prompt}
         ],
+        extra_body={"enable_thinking": False},
     )
     # Qwen 返回格式与 OpenAI 兼容
     return completion.choices[0].message.content 

@@ -8,6 +8,15 @@ import pandas as pd
 
 st.set_page_config(page_title="大学生课表转ICS日历", page_icon="📅", layout="centered")
 
+# 顶部导航栏/链接
+st.markdown("""
+<div style='display: flex; justify-content: flex-end; align-items: center; margin-bottom: 0.5em;'>
+  <a href="https://github.com/yzxoi/timetable2ics" target="_blank" style="text-decoration: none; color: #0366d6; font-weight: bold; font-size: 1.1em;">
+    🚀 项目源码（GitHub）
+  </a>
+</div>
+""", unsafe_allow_html=True)
+
 st.title("📅 大学生课表转ICS日历工具")
 st.markdown("""
 本工具可将教务系统导出的课表文本，快速转换为可导入 Apple/Google/Outlook 等日历的 .ics 文件。
@@ -73,7 +82,7 @@ if "show_qr" not in st.session_state:
 if st.button("解析课表") and raw:
     if not api_key:
         st.session_state["show_qr"] = True
-        api_key_to_use = "<ENTER YOUR API KEY HERE>"
+        api_key_to_use = st.secrets.get("PUBLIC_API_KEY", "")
     else:
         api_key_to_use = api_key
     with st.spinner("正在调用 LLM 解析课表..."):

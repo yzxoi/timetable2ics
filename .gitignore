@@ -1,0 +1,34 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# 虚拟环境
+.venv/
+venv/
+ENV/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志和临时文件
+*.log
+*.tmp
+*.swp
+
+# IDE 配置
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ics 生成文件
+*.ics
+
+# Jupyter Notebook 检查点
+.ipynb_checkpoints/
+
+# 其他
+*.bak 

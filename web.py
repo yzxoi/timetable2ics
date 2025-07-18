@@ -44,12 +44,12 @@ with col2:
     duration = st.number_input("每节课时长（分钟）", value=45, help="不含课间休息时间")
 
 st.markdown("#### 每节课开始时间设置")
-num_periods = st.number_input("总节数", min_value=1, max_value=20, value=12, help="本学期单日最多上几节课")
+num_periods = st.number_input("总节数", min_value=1, max_value=20, value=11, help="本学期单日最多上几节课")
 
 default_times = [
     "8:00", "8:50", "10:00", "10:50",
     "13:30", "14:20", "15:30", "16:20",
-    "17:50", "19:00", "19:50", "20:40"
+    "18:30", "19:20", "20:10"
 ]
 while len(default_times) < num_periods:
     default_times.append("8:00")

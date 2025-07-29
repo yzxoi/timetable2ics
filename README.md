@@ -62,7 +62,7 @@ pip install -r requirements.txt
 
 ## 致谢
 - [阿里云通义千问](https://dashscope.aliyun.com/) LLM 支持
-- 参考自 [UESTC-ics](https://github.com/lyc8503/UESTC-ics) 等开源项目
+- 参考自 [python-ical-timetable](https://github.com/junyilou/python-ical-timetable) 等开源项目
 
 ---
 如有建议或问题，欢迎 Issue 或 PR！ 

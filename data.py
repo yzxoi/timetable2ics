@@ -78,6 +78,16 @@ class School:
         assert len(self.start) >= 3, "请设置为开学第一周的日期，以元素元组方式输入年、月、日"
         assert self.courses, "请设置你的课表数组，每节课是一个 Course 实例"
         self.timetable.insert(0, (0, 0))
+        for c in self.courses:
+            if not c.indexes:
+                raise ValueError(f"{c.name} 未设置节次")
+            c.indexes.sort()
+        # Ensure timetable covers all course indexes to avoid IndexError in time()
+        max_index = max(i for c in self.courses for i in c.indexes)
+        if max_index >= len(self.timetable):
+            raise ValueError(
+                f"课程节次 {max_index} 超过设定的总节数 {len(self.timetable) - 1}, 请检查课表设置"
+            )
         self.start_dt = datetime(*self.start[:3])
         self.start_dt -= timedelta(days=self.start_dt.weekday())
 
@@ -102,23 +112,27 @@ class School:
             elif isinstance(course.location, Geo):
                 course.location = course.location.result()
             assert isinstance(course.location, list), "课程定位信息类型不正确"
-        coures = [
-            [
-                "BEGIN:VEVENT",
-                f"SUMMARY:{course.title()}",
-                f"DESCRIPTION:{course.description()}",
-                f"DTSTART;TZID=Asia/Shanghai:{self.time(week, course.weekday, course.indexes[0]):%Y%m%dT%H%M%S}",
-                f"DTEND;TZID=Asia/Shanghai:{self.time(week, course.weekday, course.indexes[-1], True):%Y%m%dT%H%M%S}",
-                f"DTSTAMP:{runtime:%Y%m%dT%H%M%SZ}",
-                f"UID:{md5(str((course.title, week, course.weekday, course.indexes[0])).encode()).hexdigest()}",
-                f"URL;VALUE=URI:",
-                *course.location,
-                "END:VEVENT",
-            ]
-            for course in self.courses
-            for week in course.weeks
-        ]
-        items = [i for j in coures for i in j]
+        events = []
+        for course in self.courses:
+            for week in course.weeks:
+                start_dt = self.time(week, course.weekday, course.indexes[0])
+                end_dt = self.time(week, course.weekday, course.indexes[-1], True)
+                if end_dt <= start_dt:
+                    raise ValueError(f"{course.name} 的结束时间不晚于开始时间，请检查节次设置")
+                uid_src = (course.title(), week, course.weekday, tuple(course.indexes))
+                events.append([
+                    "BEGIN:VEVENT",
+                    f"UID:{md5(str(uid_src).encode()).hexdigest()}",
+                    f"DTSTAMP:{runtime:%Y%m%dT%H%M%SZ}",
+                    f"DTSTART;TZID=Asia/Shanghai:{start_dt:%Y%m%dT%H%M%S}",
+                    f"DTEND;TZID=Asia/Shanghai:{end_dt:%Y%m%dT%H%M%S}",
+                    f"SUMMARY:{course.title()}",
+                    f"DESCRIPTION:{course.description()}",
+                    "URL;VALUE=URI:",
+                    *course.location,
+                    "END:VEVENT",
+                ])
+        items = [line for event in events for line in event]
         for line in self.HEADERS + items + self.FOOTERS:
             first = True
             while line:
@@ -191,4 +205,4 @@ class AppleMaps:
                 ke.add_note(f"已在日历文件中记录的地点有: {', '.join(self.locations)}")
             except AttributeError:
                 pass
-            raise ke from None
+            raise ke from None

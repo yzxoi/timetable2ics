@@ -111,12 +111,16 @@ if "course_list" in st.session_state:
     st.dataframe(df, use_container_width=True)
     if st.button("确认无误，生成ICS文件"):
         courses = json_to_courses(st.session_state["course_list"])
-        school = School(
-            duration=duration,
-            timetable=timetable,
-            start=(start_date.year, start_date.month, start_date.day),
-            courses=courses
-        )
-        ics_content = school.generate()
-        st.success("ICS文件已生成！")
-        st.download_button("下载ICS文件", ics_content, file_name="timetable.ics") 
+        try:
+            school = School(
+                duration=duration,
+                timetable=timetable,
+                start=(start_date.year, start_date.month, start_date.day),
+                courses=courses,
+            )
+            ics_content = school.generate()
+        except ValueError as e:
+            st.error(str(e))
+        else:
+            st.success("ICS文件已生成！")
+            st.download_button("下载ICS文件", ics_content, file_name="timetable.ics")

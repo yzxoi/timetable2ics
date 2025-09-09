@@ -107,9 +107,39 @@ if st.session_state["show_qr"]:
 
 if "course_list" in st.session_state:
     st.subheader("课表预览（可在此处修改）")
-    df = pd.DataFrame(st.session_state["course_list"])
+
+    # Create a deep copy for editing to avoid altering the original data
+    import copy
+    editable_course_list = copy.deepcopy(st.session_state["course_list"])
+
+    # Convert list-like columns to comma-separated strings for st.data_editor
+    for course in editable_course_list:
+        if 'weeks' in course and isinstance(course['weeks'], list):
+            course['weeks'] = ", ".join(map(str, course['weeks']))
+        if 'indexes' in course and isinstance(course['indexes'], list):
+            course['indexes'] = ", ".join(map(str, course['indexes']))
+
+    df = pd.DataFrame(editable_course_list)
     edited_df = st.data_editor(df, use_container_width=True)
-    st.session_state["course_list"] = edited_df.to_dict("records")
+
+    # Convert the edited strings back to lists of integers
+    edited_records = edited_df.to_dict("records")
+    for record in edited_records:
+        if 'weeks' in record and isinstance(record['weeks'], str):
+            try:
+                record['weeks'] = [int(x.strip()) for x in record['weeks'].split(',') if x.strip()]
+            except ValueError:
+                st.error(f"课程 '{record.get('name', '')}' 的周次（weeks）格式不正确，请使用逗号分隔的数字。")
+                st.stop()
+        if 'indexes' in record and isinstance(record['indexes'], str):
+            try:
+                record['indexes'] = [int(x.strip()) for x in record['indexes'].split(',') if x.strip()]
+            except ValueError:
+                st.error(f"课程 '{record.get('name', '')}' 的节次（indexes）格式不正确，请使用逗号分隔的数字。")
+                st.stop()
+
+    st.session_state["course_list"] = edited_records
+
     if st.button("确认无误，生成ICS文件"):
         courses = json_to_courses(st.session_state["course_list"])
         try:

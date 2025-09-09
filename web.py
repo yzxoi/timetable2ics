@@ -106,9 +106,10 @@ if st.session_state["show_qr"]:
             st.session_state["show_qr"] = False
 
 if "course_list" in st.session_state:
-    st.subheader("课表预览")
+    st.subheader("课表预览（可在此处修改）")
     df = pd.DataFrame(st.session_state["course_list"])
-    st.dataframe(df, use_container_width=True)
+    edited_df = st.data_editor(df, use_container_width=True)
+    st.session_state["course_list"] = edited_df.to_dict("records")
     if st.button("确认无误，生成ICS文件"):
         courses = json_to_courses(st.session_state["course_list"])
         try:

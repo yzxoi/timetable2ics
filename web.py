@@ -26,6 +26,17 @@ st.markdown("""
 - 解析结果可预览、确认后再生成日历
 """)
 
+# iPhone 导入受阻时的快捷指令公告
+st.info(
+    """
+    iPhone 上无法直接导入 ICS？可使用快捷指令一键添加到苹果日历。
+
+    打开 ICS 文件后，点击「共享」图标 或「用其他应用打开」，选择「ICS To Calendar」即可。
+    - 快捷指令： [导入 ICS 到苹果日历](https://www.icloud.com/shortcuts/76e984f27b194fbf9c81044bf8bd0109)
+    - 作者（下载失败请点这里）： [8isnothing](https://routinehub.co/shortcut/7005/)
+    """
+)
+
 st.divider()
 
 st.header("1️⃣ 课表原始数据输入")

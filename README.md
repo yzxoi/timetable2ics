@@ -60,6 +60,11 @@ pip install -r requirements.txt
 - **ics 文件导入失败？**
   - 请参考 `usage.md` 或各大日历应用官方说明。
 
+## iPhone 无法导入 ics 的替代方案
+若你在 iPhone 上直接打开 `.ics` 文件仍无法添加到 Apple 日历，可以借助快捷指令完成导入。
+
+[快捷指令](https://www.icloud.com/shortcuts/76e984f27b194fbf9c81044bf8bd0109)@[8isnothing](https://routinehub.co/user/8isnothing)
+
 ## 致谢
 - [阿里云通义千问](https://dashscope.aliyun.com/) LLM 支持
 - 参考自 [python-ical-timetable](https://github.com/junyilou/python-ical-timetable) 等开源项目

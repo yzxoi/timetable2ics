@@ -59,6 +59,7 @@ class School:
     timetable: list[tuple[int, int]] = field(default_factory=list)
     start: tuple[int, int, int] = (2023, 9, 1)
     courses: list[Course] = field(default_factory=list)
+    adjustments: dict = field(default_factory=dict)
 
     HEADERS = [
         "BEGIN:VCALENDAR",
@@ -104,25 +105,91 @@ class School:
         runtime = datetime.now()
         texts = []
         
-        events = []
+        # 1) 生成全部原始事件（不考虑调休）
+        all_events = []  # list of dict for easier post-process
         for course in self.courses:
             for week in course.weeks:
                 start_dt = self.time(week, course.weekday, course.indexes[0])
                 end_dt = self.time(week, course.weekday, course.indexes[-1], True)
                 if end_dt <= start_dt:
                     raise ValueError(f"{course.name} 的结束时间不晚于开始时间，请检查节次设置")
-                uid_src = (course.title(), week, course.weekday, tuple(course.indexes))
-                events.append([
-                    "BEGIN:VEVENT",
-                    f"UID:{md5(str(uid_src).encode()).hexdigest()}",
-                    f"DTSTAMP:{runtime:%Y%m%dT%H%M%SZ}",
-                    f"DTSTART;TZID=Asia/Shanghai:{start_dt:%Y%m%dT%H%M%S}",
-                    f"DTEND;TZID=Asia/Shanghai:{end_dt:%Y%m%dT%H%M%S}",
-                    f"SUMMARY:{course.title()}",
-                    f"DESCRIPTION:{course.description()}",
-                    "URL;VALUE=URI:",
-                    "END:VEVENT",
-                ])
+                all_events.append({
+                    "course": course,
+                    "week": week,
+                    "weekday": course.weekday,
+                    "indexes": tuple(course.indexes),
+                    "start_dt": start_dt,
+                    "end_dt": end_dt,
+                })
+
+        # 2) 解析调休数据
+        off_dates = set()
+        remap_pairs = []  # list of (to_date, from_date)
+        if self.adjustments:
+            try:
+                for d in self.adjustments.get("off_dates", []) or []:
+                    off_dates.add(datetime.fromisoformat(d).date())
+                for m in self.adjustments.get("remap", []) or []:
+                    to_d = datetime.fromisoformat(m.get("date")).date()
+                    from_d = datetime.fromisoformat(m.get("from")).date()
+                    remap_pairs.append((to_d, from_d))
+            except Exception:
+                # 忽略无效的调休输入，按无调休处理
+                off_dates = set()
+                remap_pairs = []
+
+        # 3) 先基于 off_dates 过滤原始事件
+        filtered_events = [e for e in all_events if e["start_dt"].date() not in off_dates]
+
+        # 4) 基于 remap 复制事件：将 from_date 的事件复制到 to_date（时间点不变，仅日期替换）
+        remapped_events = []
+        if remap_pairs:
+            # 建立 from_date -> 事件列表 的索引（从全部事件中取，确保假期被移除但仍可作为来源）
+            from_index = {}
+            for e in all_events:
+                d = e["start_dt"].date()
+                from_index.setdefault(d, []).append(e)
+            for to_date, from_date in remap_pairs:
+                for src in from_index.get(from_date, []):
+                    # 复制并替换日期
+                    start_dt = src["start_dt"].replace(year=to_date.year, month=to_date.month, day=to_date.day)
+                    end_dt = src["end_dt"].replace(year=to_date.year, month=to_date.month, day=to_date.day)
+                    remapped_events.append({
+                        "course": src["course"],
+                        "week": src["week"],
+                        "weekday": src["weekday"],
+                        "indexes": src["indexes"],
+                        "start_dt": start_dt,
+                        "end_dt": end_dt,
+                        "remapped_from": from_date.isoformat(),
+                        "remapped_to": to_date.isoformat(),
+                    })
+
+        final_events = filtered_events + remapped_events
+
+        # 5) 渲染到 ICS 文本
+        events = []
+        for e in final_events:
+            course = e["course"]
+            start_dt = e["start_dt"]
+            end_dt = e["end_dt"]
+            uid_src = (
+                course.title(),
+                start_dt.date().isoformat(),
+                tuple(e["indexes"]),
+                e.get("remapped_from", "orig"),
+            )
+            events.append([
+                "BEGIN:VEVENT",
+                f"UID:{md5(str(uid_src).encode()).hexdigest()}",
+                f"DTSTAMP:{runtime:%Y%m%dT%H%M%SZ}",
+                f"DTSTART;TZID=Asia/Shanghai:{start_dt:%Y%m%dT%H%M%S}",
+                f"DTEND;TZID=Asia/Shanghai:{end_dt:%Y%m%dT%H%M%S}",
+                f"SUMMARY:{course.title()}",
+                f"DESCRIPTION:{course.description()}",
+                "URL;VALUE=URI:",
+                "END:VEVENT",
+            ])
         items = [line for event in events for line in event]
         for line in self.HEADERS + items + self.FOOTERS:
             first = True
@@ -133,4 +200,4 @@ class School:
         return "\n".join(texts)
 
 
-
+

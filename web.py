@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from parserics.llm_parser import parse_timetable
+from parserics.llm_parser import parse_timetable, parse_adjustments
 from parserics.json_to_courses import json_to_courses
 from data import School
 import datetime
@@ -33,6 +33,15 @@ api_key = st.text_input("Alibaba LLM API Key（调用 qwen-turbo model，可留�
 if not api_key:
     st.info("如未填写API Key，将会调用公共API。")
 raw = st.text_area("粘贴你的课表文本（必填）", height=200, help="请直接粘贴从教务系统复制的课表内容")
+
+adjust_text = st.text_area(
+    "放假/调休公告（可选）",
+    value="国庆节、中秋节：10月1日（周三）至8日（周三）放假调休，共8天。9月28日（周日）、10月11日（周六）上课、上班，9月28日（周日）安排10月7日（周二）的教学工作， 10月11日（周六）安排10月8日（周三）的教学工作。",
+    height=120,
+    help="例如：国庆节、中秋节：10月1日至8日放假调休；9月28日（周日）安排10月7日（周二）的教学工作；10月11日（周六）安排10月8日（周三）的教学工作。"
+)
+
+apply_adjustments = st.checkbox("启用调休规则", value=True, help="关闭后将忽略放假/调休规则")
 
 st.divider()
 
@@ -99,6 +108,17 @@ if st.button("解析课表") and raw:
             st.error(f"解析 LLM 返回内容失败: {e}\n\nLLM原始输出：\n{json_str}")
             st.stop()
 
+    # 若提供了调休公告，尝试解析
+    if adjust_text.strip():
+        with st.spinner("正在解析放假/调休公告..."):
+            adj_str = parse_adjustments(adjust_text, api_key_to_use, start_date.year)
+            try:
+                adj_data = json.loads(adj_str) if adj_str.strip() else {}
+            except Exception as e:
+                st.warning(f"调休公告解析失败（将不应用调休）：{e}\n\n原始输出：\n{adj_str}")
+                adj_data = {}
+            st.session_state["adjustments"] = adj_data
+
 if st.session_state["show_qr"]:
     with st.expander("感谢支持！如觉得本工具有用欢迎扫码赞赏（可关闭继续使用）", expanded=True):
         st.image("reward_wx.jpg", caption="赞赏码")
@@ -140,6 +160,24 @@ if "course_list" in st.session_state:
 
     st.session_state["course_list"] = edited_records
 
+    # 预览调休解析结果 + 高级手动覆盖
+    if st.session_state.get("adjustments") or apply_adjustments:
+        with st.expander("调休规则预览 / 高级编辑", expanded=False):
+            st.json(st.session_state.get("adjustments", {}))
+            manual_json = st.text_area(
+                "高级：手动覆盖调休JSON（可选）",
+                value="",
+                height=140,
+                help="如需手动修正，粘贴形如 {\"off_dates\":[\"2024-10-01\"],\"remap\":[{\"date\":\"2024-09-28\",\"from\":\"2024-10-07\"}]} 的JSON"
+            )
+            if manual_json.strip():
+                try:
+                    override = json.loads(manual_json)
+                    st.session_state["adjustments"] = override
+                    st.success("已应用手动覆盖的调休JSON")
+                except Exception as e:
+                    st.error(f"手动覆盖JSON解析失败：{e}")
+
     if st.button("确认无误，生成ICS文件"):
         courses = json_to_courses(st.session_state["course_list"])
         try:
@@ -148,6 +186,7 @@ if "course_list" in st.session_state:
                 timetable=timetable,
                 start=(start_date.year, start_date.month, start_date.day),
                 courses=courses,
+                adjustments=st.session_state.get("adjustments", {}) if apply_adjustments else {},
             )
             ics_content = school.generate()
         except ValueError as e:

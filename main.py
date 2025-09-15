@@ -1,4 +1,4 @@
-from data import AppleMaps, Course, Geo, School
+from data import Course, School
 
 school = School(
     duration=45,   # 每节课时间为 45 分钟
@@ -21,9 +21,8 @@ school = School(
 		Course(
 			name="工程管理",
 			teacher="王",
-			classroom="北205",
-			location="北205",
-			weekday=4,
+			            classroom="北205",
+            weekday=4,
 			weeks=Course.week(1, 17),
 			indexes=[10, 11],
 		),

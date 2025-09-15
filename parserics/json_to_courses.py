@@ -9,7 +9,6 @@ def json_to_courses(json_data):
                 name=item["name"],
                 teacher=item["teacher"],
                 classroom=item["classroom"],
-                location=item.get("location", item["classroom"]),
                 weekday=item["weekday"],
                 weeks=item["weeks"],
                 indexes=sorted(item["indexes"]),

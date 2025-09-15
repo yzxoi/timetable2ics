@@ -25,8 +25,7 @@ def parse_timetable(raw_text, api_key):
    • “[1-16]” → `[1,2,…,16]`
    • “[2-16双]” → `[2,4,6,…,16]`
    • “[1, 3, 5]” 原样提取 `[1,3,5]`
-5. 仅在 `location` 与 `classroom` 不同或需更精准定位时填 `location`，否则可以省略（让前端用 `.get("location", classroom)`）。
-6. 输出示例（请勿直接使用）：
+5. 输出示例（请勿直接使用）：
 {
   "courses":[
     {

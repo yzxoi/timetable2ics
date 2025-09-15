@@ -10,7 +10,6 @@ class Course:
     name: str
     teacher: str
     classroom: str
-    location: Any
     weekday: int
     weeks: list[int]
     indexes: list[int]
@@ -104,14 +103,7 @@ class School:
     def generate(self) -> str:
         runtime = datetime.now()
         texts = []
-        for course in self.courses:
-            if not course.location:
-                course.location = []
-            elif isinstance(course.location, str):
-                course.location = [f"LOCATION:{course.location}"]
-            elif isinstance(course.location, Geo):
-                course.location = course.location.result()
-            assert isinstance(course.location, list), "课程定位信息类型不正确"
+        
         events = []
         for course in self.courses:
             for week in course.weeks:
@@ -129,7 +121,6 @@ class School:
                     f"SUMMARY:{course.title()}",
                     f"DESCRIPTION:{course.description()}",
                     "URL;VALUE=URI:",
-                    *course.location,
                     "END:VEVENT",
                 ])
         items = [line for event in events for line in event]
@@ -142,67 +133,4 @@ class School:
         return "\n".join(texts)
 
 
-@dataclass
-class Geo:
-    """
-    仅提供坐标和地点名称的地点信息：
-    name: 地点名称，lat：纬度，lon：经度
-    """
-    name: str
-    lat: float | str
-    lon: float | str
-
-    @property
-    def geo(self) -> str:
-        return f"GEO:{self.lat};{self.lon}"
-
-    def result(self) -> list[str]:
-        return [f"LOCATION:{self.name}", self.geo]
-
-
-class AppleMaps:
-    """
-    Apple Maps 地点信息：
-    传入预先准备好的 ics 文件地址，自动分析
-    """
-
-    KEYS = ["SUMMARY", "LOCATION", "X-APPLE-STRUCTURED-LOCATION"]
-
-    def __init__(self, calendar: str) -> None:
-        self.locations: dict[str, dict[str, str]] = {}
-        with open(calendar, encoding = "utf-8") as r:
-            c = r.read()
-        for i in re.findall(r"(?<=BEGIN:VEVENT)[\s\S]*?(?=END:VEVENT)", c):
-            self.generate(i)
-
-    def generate(self, event: str) -> None:
-        lines = event.split("\n")
-        for i, e in enumerate(lines):
-            if not e.startswith(" "):
-                continue
-            d = i - 1
-            while not lines[d]:
-                d -= 1
-            lines[d] += e.removeprefix(" ")
-            lines[i] = ""
-        data = {k: next((i for i in lines if i.startswith(k)), "")
-                for k in self.KEYS}
-        if not all(data.values()):
-            return
-        title = data.pop("SUMMARY").removeprefix("SUMMARY:").strip()
-        geo = re.findall(r"geo:([\d.]+),([\d.]+)",
-                         data["X-APPLE-STRUCTURED-LOCATION"])
-        if geo:
-            data["GEO"] = Geo(title, geo[0][0], geo[0][1]).geo
-        self.locations[title] = data
-
-    def __getitem__(self, key: str) -> list[str]:
-        try:
-            return list(self.locations[key].values())
-        except KeyError:
-            ke = KeyError(f"没有找到 {key!r} 的 Apple Maps 信息")
-            try:
-                ke.add_note(f"已在日历文件中记录的地点有: {', '.join(self.locations)}")
-            except AttributeError:
-                pass
-            raise ke from None
+

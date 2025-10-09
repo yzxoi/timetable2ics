@@ -26,6 +26,7 @@
 
 要在 iPhone、iPad 上导入日历，你需要在 iOS、iPadOS 上设法打开 ics 文件，较为简单的几种方法是：
 
+* 快捷指令导入：[点击下载](https://www.icloud.com/shortcuts/76e984f27b194fbf9c81044bf8bd0109)@[8isnothing](https://routinehub.co/user/8isnothing)，打开 ics 文件，选择「ICS To Calendar」即可。
 * 如果你有 Mac 等其他 Apple 设备并支持 AirDrop，将 ics 文件 AirDrop 到需要导入日历的 iOS 设备即可；
 * 如果你使用 iOS 自带的邮件 app，将 ics 作为附件发送邮件给设备，并点击附件中的 ics 文件；
 * 如果你有网络服务器，或有办法将 ics 上传到一个网站上，使用 Safari 浏览器打开链接到 ics 文件的地址；

@@ -4,7 +4,6 @@ from parserics.llm_parser import parse_timetable, parse_adjustments
 from parserics.json_to_courses import json_to_courses
 from data import School
 import datetime
-import pandas as pd
 
 st.set_page_config(page_title="大学生课表转ICS日历", page_icon="📅", layout="centered")
 
@@ -150,11 +149,21 @@ if "course_list" in st.session_state:
         if 'indexes' in course and isinstance(course['indexes'], list):
             course['indexes'] = ", ".join(map(str, course['indexes']))
 
-    df = pd.DataFrame(editable_course_list)
-    edited_df = st.data_editor(df, use_container_width=True)
+    edited_records = st.data_editor(
+        editable_course_list,
+        use_container_width=True,
+        num_rows="dynamic",
+        key="course_editor",
+    )
 
-    # Convert the edited strings back to lists of integers
-    edited_records = edited_df.to_dict("records")
+    if edited_records is None:
+        edited_records = editable_course_list
+
+    # st.data_editor returns list-like data when provided list[dict]; ensure consistent format
+    if hasattr(edited_records, "to_dict"):
+        edited_records = edited_records.to_dict("records")
+    elif isinstance(edited_records, dict):
+        edited_records = [edited_records]
     for record in edited_records:
         if 'weeks' in record and isinstance(record['weeks'], str):
             try:

@@ -1,3 +1,5 @@
+
+
 # 大学生课表转 ICS 日历工具
 
 ## 项目简介
@@ -8,6 +10,7 @@
 - 支持自定义每节课的开始时间、学期起始日、课时长度
 - 解析结果可表格预览，确认无误后生成 `.ics` 文件
 - 支持自带 LLM API Key 或使用平台公用 Key
+- 支持输入放假/调休公告，自动解析并调整课表日期
 - 赞赏码弹窗鼓励支持开发者
 
 ## 目录结构
@@ -70,4 +73,4 @@ pip install -r requirements.txt
 - 参考自 [python-ical-timetable](https://github.com/junyilou/python-ical-timetable) 等开源项目
 
 ---
-如有建议或问题，欢迎 Issue 或 PR！ 
+如有建议或问题，欢迎 Issue 或 PR！

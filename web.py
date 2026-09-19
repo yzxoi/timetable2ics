@@ -39,16 +39,16 @@ st.info(
 st.divider()
 
 st.header("1️⃣ 课表原始数据输入")
-api_key = st.text_input("Alibaba LLM API Key（调用 qwen-turbo model，可留空使用公用Key）", type="password").strip()
+api_key = st.text_input("Alibaba LLM API Key（调用 qwen3.8-flash model，可留空使用公用Key）", type="password").strip()
 if not api_key:
     st.info("如未填写API Key，将会调用公共API。")
 raw = st.text_area("粘贴你的课表文本（必填）", height=200, help="请直接粘贴从教务系统复制的课表内容")
 
 adjust_text = st.text_area(
     "放假/调休公告（可选）",
-    value="清明节：4月4日（周六）至6日（周一）放假，共3天。劳动节：5月1日（周五）至5日（周二）放假调休，共5天。5月9日（周六）上课、上班，安排5月5日（周二）的教学工作。端午节：6月19日（周五）至21日（周日）放假，共3天。",
+    value="中秋节：9月25日（周五）至27日（周日）放假，共3天。国庆节：10月1日（周四）至7日（周三）放假调休，共7天。9月20日（周日）、10月10日（周六）上课、上班，9月20日（周日）安排10月6日（周二）的教学工作，10月10日（周六）安排10月7日（周三）的教学工作。",
     height=120,
-    help="例如：清明节：4月4日（周六）至6日（周一）放假，共3天；劳动节：5月1日（周五）至5日（周二）放假调休，共5天；5月9日（周六）安排5月5日（周二）的教学工作。"
+    help="例如：中秋节：9月25日（周五）至27日（周日）放假，共3天；国庆节：10月1日（周四）至7日（周三）放假调休，共7天；9月20日（周日）安排10月6日（周二）的教学工作。"
 )
 
 apply_adjustments = st.checkbox("启用调休规则", value=True, help="关闭后将忽略放假/调休规则")
@@ -58,7 +58,7 @@ st.divider()
 st.header("2️⃣ 学期与课程时间设置")
 col1, col2 = st.columns(2)
 with col1:
-    start_date = st.date_input("开学第一周周一日期", value=datetime.date(2026, 3, 2), help="用于计算每周的具体日期")
+    start_date = st.date_input("开学第一周周一日期", value=datetime.date(2026, 9, 14), help="用于计算每周的具体日期")
 with col2:
     duration = st.number_input("每节课时长（分钟）", value=45, help="不含课间休息时间")
 

@@ -14,7 +14,7 @@ def parse_timetable(raw_text, api_key):
 <<文本结束
     """
     completion = client.chat.completions.create(
-        model="qwen-turbo",
+        model="qwen3.8-flash",
         messages=[
             {"role": "system", "content": """你是一名严格输出 JSON 的机器人，只能输出json，不能输出其他内容。
 请遵守以下规则：
@@ -89,7 +89,7 @@ def parse_adjustments(adjust_text: str, api_key: str, start_year: int) -> str:
 5) 只输出 JSON，无解释，无多余文字。
 """
     completion = client.chat.completions.create(
-        model="qwen-turbo",
+        model="qwen3.8-flash",
         messages=[
             {"role": "system", "content": "你是严格 JSON 解析器，只能输出 JSON。"},
             {"role": "user", "content": prompt},

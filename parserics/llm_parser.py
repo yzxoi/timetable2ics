@@ -6,7 +6,7 @@ def parse_timetable(raw_text, api_key):
     api_key = (api_key or os.getenv("DASHSCOPE_API_KEY") or "").strip()
     client = OpenAI(
         api_key=api_key,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        base_url="https://llm-nfg9phje8mt21y7c.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
     )
     prompt = f"""请从下列文本中提取所有课程记录。
 文本开始>>
